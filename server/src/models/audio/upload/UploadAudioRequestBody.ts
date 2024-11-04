@@ -1,3 +1,0 @@
-interface UploadAudioRequestBody {
-    fileName: string
-}
