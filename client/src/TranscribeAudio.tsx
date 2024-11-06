@@ -1,4 +1,4 @@
-import React, { useState, ChangeEvent, FormEvent } from 'react';
+import React, { useState, ChangeEvent, FormEvent, useEffect } from 'react';
 
 // Define state types
 interface TranscriptionResponse {
@@ -9,6 +9,27 @@ const TranscribeAudio: React.FC = () => {
     const [audioFile, setAudioFile] = useState<File | null>(null);
     const [transcription, setTranscription] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(false);
+    const [displayedText, setDisplayedText] = useState<string>('');
+
+    // Add useEffect to handle gradual text display
+    useEffect(() => {
+        if (!transcription) {
+            setDisplayedText('');
+            return;
+        }
+
+        let currentIndex = 0;
+        const intervalId = setInterval(() => {
+            if (currentIndex <= transcription.length) {
+                setDisplayedText(transcription.slice(0, currentIndex));
+                currentIndex++;
+            } else {
+                clearInterval(intervalId);
+            }
+        }, 50); // Adjust speed by changing interval time
+
+        return () => clearInterval(intervalId);
+    }, [transcription]);
 
     // Handle file selection
     const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -20,6 +41,10 @@ const TranscribeAudio: React.FC = () => {
     // Handle form submission
     const handleTranscribe = async (event: FormEvent) => {
         event.preventDefault();
+
+        // Clear previous transcription results
+        setTranscription('');
+        setDisplayedText('');
 
         if (!audioFile) return;
 
@@ -56,7 +81,7 @@ const TranscribeAudio: React.FC = () => {
             {transcription && (
                 <div>
                     <h3>Transcription Result</h3>
-                    <p>{transcription}</p>
+                    <p>{displayedText}</p>
                 </div>
             )}
         </div>
